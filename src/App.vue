@@ -1,10 +1,11 @@
 <template>
   <div id="app">
     <form name="subForm" @submit.prevent="addSubscription">
-      <input v-model="subscribeName" placeholder="Введите название подписки" type="text">
-      <input v-model.number="amount" type="number">
-      <input v-model="dateStart" type="date">
-      <input v-model="dateEnd" type="date">
+      <input v-model="subscribeName" name="subscribeName" placeholder="Введите название подписки" type="text" required>
+      <input v-model.number="amount" name="amount" type="number" required>
+      <input v-model="dateEnd" name="dateEnd" type="date" required>
+      <input v-model="dateStart" name="dateStart" type="date" required>
+      <input v-model="accountName" name="accountName" placeholder="Введите аккаунт, через который оформлена подписка" type="text" required>
       <input type="submit" value="Добавить">
     </form>
     <SubscriptionItem
@@ -12,8 +13,8 @@
       :key="item.index"
       :index="index"
       :item="item"
-      @updateSubscription="updateSubscription"
-      @deleteSubscription="deleteSubscription"
+      @updateSubscription="updateSubscription(item, index)"
+      @deleteSubscription="deleteSubscription(index)"
     />
   </div>
 </template>
@@ -26,30 +27,27 @@ export default {
   components: {
     SubscriptionItem
   },
+
   data() {
     return {
       subscriptions: [],
-      subscribeName: '',
-      amount: 0,
-      dateStart: new Date(),
-      dateEnd: new Date()
+        subscribeName: '',
+        amount: 0,
+        dateStart: new Date(),
+        dateEnd: new Date(),
+        accountName: ''
     }
   },
+
   mounted() {
-    this.subscriptions = JSON.parse(sessionStorage.getItem('subscriptions'))
+    this.subscriptions = JSON.parse(localStorage.subscriptions) || [];
   },
+
   methods: {
     addSubscription() {
-      let subscription = {
-        id: this.subscriptions.length,
-        subscribeName: this.subscribeName,
-        amount: this.amount,
-        dateStart: this.dateStart,
-        dateEnd: this.dateEnd
-      };
-
-      this.subscriptions.push(subscription);
-      this.updateSubscription();
+      let formData = new FormData(document.forms[0]);
+      this.subscriptions.push(Object.fromEntries(formData));
+      this.updateSubscriptions();
       this.cleanForm();
     },
 
@@ -64,7 +62,7 @@ export default {
     },
 
     updateSubscriptions() {
-      sessionStorage.setItem('subscriptions', JSON.stringify(this.subscriptions));
+      localStorage.subscriptions = JSON.stringify(this.subscriptions);
     },
 
     cleanForm() {
@@ -72,9 +70,14 @@ export default {
       this.amount = null;
       this.dateStart = null;
       this.dateEnd = null;
+      this.accountName = '';
     }
   }
 }
 </script>
 
-<style></style>
+<style>
+input {
+  border: 1px solid gray;
+}
+</style>
